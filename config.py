@@ -1,11 +1,31 @@
+import os
 import time
 from datetime import date
+
+# 开奖历史记录
+history = []
+
+# 公式计算项目，包括: 6个落球序平码、特码的号码、号码头、波色位、生肖位
+calc_item = ["L1|hm",  "L2|hm",  "L3|hm",  "L4|hm",  "L5|hm",  "L6|hm",  "tm|hm",
+             "L1|tou", "L2|tou", "L3|tou", "L4|tou", "L5|tou", "L6|tou", "tm|tou",
+             "L1|bo",  "L2|bo",  "L3|bo",  "L4|bo",  "L5|bo",  "L6|bo",  "tm|bo",
+             "L1|sx",  "L2|sx",  "L3|sx",  "L4|sx",  "L5|sx",  "L6|sx",  "tm|sx"]
+item_title = ["落球序1平",     "落球序2平",     "落球序3平",     "落球序4平",     "落球序5平",     "落球序6平",     "特",
+              "落球序1平头",   "落球序2平头",   "落球序3平头",   "落球序4平头",   "落球序5平头",   "落球序6平头",   "特头",
+              "落球序1平波",   "落球序2平波",   "落球序3平波",   "落球序4平波",   "落球序5平波",   "落球序6平波",   "特波",
+              "落球序1平肖位", "落球序2平肖位", "落球序3平肖位", "落球序4平肖位", "落球序5平肖位", "落球序6平肖位", "特肖位"]
 
 # 开始计算的期数
 start_qi_shu = 2002001
 
+# 项目路径
+_work_dir = os.getcwd()
+
+# 历史记录文件绝对路径
+_data_file = r"D:\data\lottery\six.txt"
+
 # 生肖位
-sheng_xiao_wei = {
+_sheng_xiao_wei = {
     "鼠": 1,
     "牛": 2,
     "虎": 3,
@@ -21,14 +41,14 @@ sheng_xiao_wei = {
 }
 
 # 波色位
-bo_se_wei = {
+_bo_se_wei = {
     "红": 0,
     "蓝": 1,
     "绿": 2
 }
 
 # 号码
-nums = [
+_nums = [
     {"hm":  1, "bo_name": "红"},
     {"hm":  2, "bo_name": "红"},
     {"hm":  3, "bo_name": "蓝"},
@@ -81,7 +101,7 @@ nums = [
 ]
 
 # 与农历年相关的属性
-cn_attr = {
+_cn_attr = {
     "1976": [
         {"hm":  1, "sx_name": "龙"},
         {"hm":  2, "sx_name": "兔"},
@@ -98,48 +118,51 @@ cn_attr = {
     ]
 }
 
-# 公式计算项目，包括: 6个落球序平码、特码的号码、号码头、波色位、生肖位
-calc_item = ["L1|hm",  "L2|hm",  "L3|hm",  "L4|hm",  "L5|hm",  "L6|hm",  "tm|hm",
-             "L1|tou", "L2|tou", "L3|tou", "L4|tou", "L5|tou", "L6|tou", "tm|tou",
-             "L1|bo",  "L2|bo",  "L3|bo",  "L4|bo",  "L5|bo",  "L6|bo",  "tm|bo",
-             "L1|sx",  "L2|sx",  "L3|sx",  "L4|sx",  "L5|sx",  "L6|sx",  "tm|sx"]
-item_title = ["落球序1平",     "落球序2平",     "落球序3平",     "落球序4平",     "落球序5平",     "落球序6平",     "特",
-              "落球序1平头",   "落球序2平头",   "落球序3平头",   "落球序4平头",   "落球序5平头",   "落球序6平头",   "特头",
-              "落球序1平波",   "落球序2平波",   "落球序3平波",   "落球序4平波",   "落球序5平波",   "落球序6平波",   "特波",
-              "落球序1平肖位", "落球序2平肖位", "落球序3平肖位", "落球序4平肖位", "落球序5平肖位", "落球序6平肖位", "特肖位"]
 
-# 开奖历史记录
-history = []
+# 加载配置
+def _loadbaseprop(basepropfile):
+    for line in open(basepropfile, encoding="utf8"):
+        line = line.strip()
+        if line == '' or line.startswith('#'):
+            continue
+        arr = line.split('=')
+        if arr[0] == 'data_file':
+            global _data_file
+            _data_file = arr[1]
+        elif arr[0] == 'start_qi_shu':
+            global start_qi_shu
+            start_qi_shu = int(arr[1])
+    return
 
 
 # 初始化基本属性
 def _initnum():
     # 处理号码的头尾和波色位
-    for num in nums:
-        num["bo"] = bo_se_wei[num["bo_name"]]
+    for num in _nums:
+        num["bo"] = _bo_se_wei[num["bo_name"]]
         num["tou"] = num["hm"] // 10
         num["wei"] = num["hm"] % 10
 
     # 处理1976的13-49的生肖
     for n in range(13, 50):
-        cn_attr["1976"].append({"hm": n, "sx_name": cn_attr["1976"][n - 13]["sx_name"]})
+        _cn_attr["1976"].append({"hm": n, "sx_name": _cn_attr["1976"][n - 13]["sx_name"]})
 
     # 处理1977至今的生肖
     for y in range(1977, date.today().year + 1):
         arr = []
-        cn_attr[str(y)] = arr
+        _cn_attr[str(y)] = arr
         for n in range(0, 49):
             arr.append({"hm": n + 1})
         for n in range(49, 1, -1):
-            arr[n - 1]["sx_name"] = cn_attr[str(y - 1)][n - 2]["sx_name"]
+            arr[n - 1]["sx_name"] = _cn_attr[str(y - 1)][n - 2]["sx_name"]
         arr[0]["sx_name"] = arr[48]["sx_name"]
 
     # 处理1976至今的其他属性
     for y in range(1976, date.today().year + 1):
-        for obj in cn_attr[str(y)]:
+        for obj in _cn_attr[str(y)]:
             obj["cn_year"] = y
-            obj["sx"] = sheng_xiao_wei[obj["sx_name"]]
-            obj.update(nums[obj["hm"] - 1])
+            obj["sx"] = _sheng_xiao_wei[obj["sx_name"]]
+            obj.update(_nums[obj["hm"] - 1])
     return
 
 
@@ -188,14 +211,17 @@ def _dealhistorycalcitem():
         for item in calc_item:
             numkey, attrkey = item.split("|")
             num = h[numkey]
-            h[item] = cn_attr[cnyear][num - 1][attrkey]
+            h[item] = getnum(cnyear, num)[attrkey]
     return
 
 
 # 执行初始化
-def init(datafile=r"D:\data\lottery\six.txt"):
+def init(workdir, basefilename):
+    global _work_dir
+    _work_dir = workdir
+    _loadbaseprop(os.path.join(_work_dir, basefilename))
     _initnum()
-    _loadhistory(datafile)
+    _loadhistory(_data_file)
     _dealhistorycalcitem()
 
 
@@ -226,11 +252,12 @@ def savehistory(dstfile, extendfield=False):
 
 # 根据农历年获取号码属性
 def getnum(cnyear, x):
-    return cn_attr[str(cnyear)][x - 1]
+    return _cn_attr[str(cnyear)][x - 1]
 
 
 if __name__ == "__main__":
     print("initializing start at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-    init()
+    init(os.getcwd(), "base.prop")
     print("initializing end   at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+    print("total history records are {}".format(len(history)))
     # savehistory(r"D:\data\lottery\six2.txt")
