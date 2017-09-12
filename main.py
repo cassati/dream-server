@@ -13,5 +13,8 @@ print(time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
 
 if len(sys.argv) > 1:
     print(os.path.abspath(sys.argv[1]))
+else:
+    print('Please execute by run.bat')
+    sys.exit()
 
 input()
