@@ -1,19 +1,24 @@
+import os
 import sys
-import time
 import config
 import server
 
 
 if __name__ == "__main__":
+    config_file_name = "base.config"
     if len(sys.argv) <= 1:
-        print('Please execute by run.bat')
-        sys.exit()
-    print()
-    print("-" * 60)
-    print("initializing start at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-    config.init(sys.argv[1], "base.prop")
-    print("initializing end   at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-    print("total history records are {}".format(len(config.history)))
-    print("-" * 60)
-    server.start()
+        work_dir = os.getcwd()
+    else:
+        work_dir = sys.argv[1]
+
+    try:
+        print()
+        print("-" * 60)
+        config.init(work_dir, config_file_name)
+        print("total history records are {}".format(len(config.history)))
+        ip, port = config.ip, config.port
+        server.start(ip, port)
+    except Exception as e:
+        print(e)
+
     input()

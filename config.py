@@ -2,8 +2,16 @@ import os
 import time
 from datetime import date
 
+# 监听的ip和端口
+ip = '127.0.0.1'
+port = 8078
+
+# 计算任务的大小
+task_size = 100000
+
 # 开奖历史记录
 history = []
+simple_history = []
 
 # 公式计算项目，包括: 6个落球序平码、特码的号码、号码头、波色位、生肖位
 calc_item = ["L1|hm",  "L2|hm",  "L3|hm",  "L4|hm",  "L5|hm",  "L6|hm",  "tm|hm",
@@ -15,8 +23,11 @@ item_title = ["落球序1平",     "落球序2平",     "落球序3平",     "�
               "落球序1平波",   "落球序2平波",   "落球序3平波",   "落球序4平波",   "落球序5平波",   "落球序6平波",   "特波",
               "落球序1平肖位", "落球序2平肖位", "落球序3平肖位", "落球序4平肖位", "落球序5平肖位", "落球序6平肖位", "特肖位"]
 
-# 开始计算的期数
+# 开始期数
 start_qi_shu = 2002001
+
+# 截止期数，-1代表全部计算
+end_qi_shu = -1
 
 # 项目路径
 _work_dir = os.getcwd()
@@ -120,8 +131,8 @@ _cn_attr = {
 
 
 # 加载配置
-def _loadbaseprop(basepropfile):
-    for line in open(basepropfile, encoding="utf8"):
+def _load_config(config_file_name):
+    for line in open(config_file_name, encoding="utf8"):
         line = line.strip()
         if line == '' or line.startswith('#'):
             continue
@@ -132,11 +143,23 @@ def _loadbaseprop(basepropfile):
         elif arr[0] == 'start_qi_shu':
             global start_qi_shu
             start_qi_shu = int(arr[1])
+        elif arr[0] == 'end_qi_shu':
+            global end_qi_shu
+            end_qi_shu = int(arr[1])
+        elif arr[0] == 'ip':
+            global ip
+            ip = arr[1]
+        elif arr[0] == 'port':
+            global port
+            port = int(arr[1])
+        elif arr[0] == 'task_size':
+            global task_size
+            task_size = int(arr[1])
     return
 
 
 # 初始化基本属性
-def _initnum():
+def _init_num():
     # 处理号码的头尾和波色位
     for num in _nums:
         num["bo"] = _bo_se_wei[num["bo_name"]]
@@ -167,7 +190,7 @@ def _initnum():
 
 
 # 加载开奖历史记录
-def _loadhistory(datafile):
+def _load_history(datafile):
     for row in open(datafile):
         obj = {}
         history.append(obj)
@@ -205,28 +228,38 @@ def _loadhistory(datafile):
 
 
 # 处理历史记录的计算元素值
-def _dealhistorycalcitem():
+def _deal_history_calc_item():
     for h in history:
         cnyear = str(h["cn_year"])
         for item in calc_item:
             numkey, attrkey = item.split("|")
             num = h[numkey]
-            h[item] = getnum(cnyear, num)[attrkey]
+            h[item] = get_num(cnyear, num)[attrkey]
+    # simple history
+    less_keys = ["qi_shu", "year", "next_qi_shu"]
+    less_keys[-1:] = calc_item[:]
+    for h in history:
+        if h["qi_shu"] < start_qi_shu:
+            continue
+        obj = {}
+        simple_history.append(obj)
+        for k in less_keys:
+            obj[k] = h[k]
     return
 
 
 # 执行初始化
-def init(workdir, basefilename):
+def init(workdir, configfilename):
     global _work_dir
     _work_dir = workdir
-    _loadbaseprop(os.path.join(_work_dir, basefilename))
-    _initnum()
-    _loadhistory(_data_file)
-    _dealhistorycalcitem()
+    _load_config(os.path.join(_work_dir, configfilename))
+    _init_num()
+    _load_history(_data_file)
+    _deal_history_calc_item()
 
 
 # 按原格式打印开奖历史记录
-def savehistory(dstfile, extendfield=False):
+def save_history(dstfile, extendfield=False):
     f = open(dstfile, 'w')
     try:
         for h in history:
@@ -251,13 +284,13 @@ def savehistory(dstfile, extendfield=False):
 
 
 # 根据农历年获取号码属性
-def getnum(cnyear, x):
+def get_num(cnyear, x):
     return _cn_attr[str(cnyear)][x - 1]
 
 
 if __name__ == "__main__":
-    print("initializing start at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
-    init(os.getcwd(), "base.prop")
-    print("initializing end   at ", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())))
+    print()
+    print("-" * 60)
+    init(os.getcwd(), "base.config")
     print("total history records are {}".format(len(history)))
-    # savehistory(r"D:\data\lottery\six2.txt")
+    # save_history(r"D:\data\lottery\six2.txt")
