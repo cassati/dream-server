@@ -30,7 +30,7 @@ start_qi_shu = 2002001
 end_qi_shu = -1
 
 # 项目路径
-_work_dir = os.getcwd()
+work_dir = os.getcwd()
 
 # 历史记录文件绝对路径
 _data_file = r"D:\data\lottery\six.txt"
@@ -245,14 +245,15 @@ def _deal_history_calc_item():
         simple_history.append(obj)
         for k in less_keys:
             obj[k] = h[k]
+    sorted(simple_history, key=lambda h: h['qi_shu'], reverse=True)
     return
 
 
 # 执行初始化
 def init(workdir, configfilename):
-    global _work_dir
-    _work_dir = workdir
-    _load_config(os.path.join(_work_dir, configfilename))
+    global work_dir
+    work_dir = workdir
+    _load_config(os.path.join(work_dir, configfilename))
     _init_num()
     _load_history(_data_file)
     _deal_history_calc_item()
@@ -287,6 +288,10 @@ def save_history(dstfile, extendfield=False):
 def get_num(cnyear, x):
     return _cn_attr[str(cnyear)][x - 1]
 
+
+# 当前时间 yyyy-mm-dd hh:MM:ss
+def curr_time():
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()));
 
 if __name__ == "__main__":
     print()
