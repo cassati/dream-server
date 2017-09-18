@@ -27,7 +27,7 @@ class MyHttpHandler(http.server.BaseHTTPRequestHandler):
             result = task.dispatch(requestpath.path, data, self)
             obj = {'status': 'success', 'message': result}
         except Exception as e:
-            result = 'exception occur: ' + e.message
+            result = 'exception occur: ' + str(e)
             obj = {'status': 'error', 'message': result}
 
         # send response

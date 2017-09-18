@@ -16,8 +16,8 @@ if __name__ == "__main__":
         print("-" * 60)
         config.init(work_dir, config_file_name)
         print("total history records are {}".format(len(config.history)))
-        ip, port = config.ip, config.port
-        server.start(ip, port)
+        host, port = config.host, config.port
+        server.start(host, port)
     except Exception as e:
         print(e)
 

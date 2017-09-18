@@ -3,7 +3,7 @@ import time
 from datetime import date
 
 # 监听的ip和端口
-ip = '127.0.0.1'
+host = '127.0.0.1'
 port = 8078
 
 # 计算任务的大小
@@ -146,9 +146,9 @@ def _load_config(config_file_name):
         elif arr[0] == 'end_qi_shu':
             global end_qi_shu
             end_qi_shu = int(arr[1])
-        elif arr[0] == 'ip':
-            global ip
-            ip = arr[1]
+        elif arr[0] == 'host':
+            global host
+            host = arr[1]
         elif arr[0] == 'port':
             global port
             port = int(arr[1])

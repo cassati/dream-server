@@ -117,9 +117,9 @@ def do_finished():
     task_end_time = time.time()
     sorted(task_finished, key=lambda task: task['task_id'])
     # TODO process the tasks result
-    f = open(os.path.join(config.work_dir, str(config.start_qi_shu)), 'w')
+    f = open(os.path.join(config.work_dir, str(config.start_qi_shu) + '.txt'), 'w')
     for t in task_finished:
-        f.write(t)
+        f.write(str(t) + '\n')
     f.flush()
     f.close()
     return
