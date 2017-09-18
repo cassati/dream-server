@@ -229,6 +229,7 @@ def _load_history(datafile):
 
 # 处理历史记录的计算元素值
 def _deal_history_calc_item():
+    global simple_history
     for h in history:
         cnyear = str(h["cn_year"])
         for item in calc_item:
@@ -245,7 +246,7 @@ def _deal_history_calc_item():
         simple_history.append(obj)
         for k in less_keys:
             obj[k] = h[k]
-    sorted(simple_history, key=lambda h: h['qi_shu'], reverse=True)
+    simple_history = sorted(simple_history, key=lambda h: h['qi_shu'], reverse=True)
     return
 
 
@@ -291,7 +292,7 @@ def get_num(cnyear, x):
 
 # 当前时间 yyyy-mm-dd hh:MM:ss
 def curr_time():
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()));
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
 
 if __name__ == "__main__":
     print()

@@ -28,6 +28,11 @@ def _load_config(file_name):
     return
 
 
+# 当前时间 yyyy-mm-dd hh:MM:ss
+def curr_time():
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
+
+
 def do_post(url, body):
     jsonstr = json.dumps(body)
     conn = http.client.HTTPConnection(host, port, timeout=5)
@@ -64,9 +69,10 @@ def request_task():
 
 
 def process(task):
-    task.update({'client_id': client_id, 'client_start_time': time.time(), 'details': []})
+    task.update({'client_id': client_id, 'client_start_time': curr_time(), 'details': []})
     for h in history:
         pass
+    task['client_end_time'] = curr_time()
     return task
 
 

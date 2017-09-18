@@ -2,7 +2,6 @@ import os
 import copy
 import json
 import uuid
-import time
 import config
 
 # 本次任务的版本
@@ -24,7 +23,7 @@ task_finished = []
 
 def init():
     global task_start_time
-    task_start_time = time.time()
+    task_start_time = config.curr_time()
     total = 2**(len(config.calc_item)) - 1
     tmp_total = 0
     task_size = config.task_size
@@ -65,7 +64,7 @@ def handle_request_task(obj, request):
     if len(task_finished) == len(task_arr):
         raise Exception('all tasks are finished')
     client = get_client(obj, request)
-    client['client_start_time'] = time.time()
+    client['client_start_time'] = config.curr_time()
     t = None
     if task_unstart:
         t = task_unstart.pop()
@@ -90,8 +89,8 @@ def handle_submit_task(obj, request):
                 t['client_id'] = obj['client_id']
                 t['ip'] = client['ip']
                 t['port'] = client['port']
-                t['client_start_time'] = w['client_start_time']
-                t['client_end_time'] = time.time()
+                t['client_start_time'] = obj['client_start_time']
+                t['client_end_time'] = obj['client_end_time']
                 t['details'] = obj['details']
         del t['worker']
         task_finished.append(t)
@@ -114,8 +113,9 @@ def get_client(obj, request):
 def do_finished():
     print('{} tasks finished.', config.curr_time())
     global task_end_time
-    task_end_time = time.time()
-    sorted(task_finished, key=lambda task: task['task_id'])
+    task_end_time = config.curr_time()
+    global task_finished
+    task_finished = sorted(task_finished, key=lambda task: task['task_id'], reverse=False)
     # TODO process the tasks result
     f = open(os.path.join(config.work_dir, str(config.start_qi_shu) + '.txt'), 'w')
     for t in task_finished:
