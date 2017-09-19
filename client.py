@@ -8,8 +8,10 @@ import http.client
 host = '127.0.0.1'
 port = 8078
 client_id = uuid.uuid4().hex
-calc_item = None
-history = None
+calc_item = []
+history = []
+history_calc = []
+calc_formula_format = "{:0>28}"
 
 
 # 加载配置
@@ -49,9 +51,10 @@ def init():
     response = do_post('/base_data', request)
     obj = json.loads(response)
     if obj['status'] == 'success':
-        global calc_item, history
-        calc_item = obj['message']['calc_item']
+        global calc_item, history, calc_formula_format
         history = obj['message']['history']
+        calc_item = obj['message']['calc_item']
+        calc_formula_format = "{:0>" + str(len(calc_item)) + "}"
         return
     raise Exception('加载初始化数据失败，请重试')
 
@@ -69,10 +72,39 @@ def request_task():
 
 
 def process(task):
-    task.update({'client_id': client_id, 'client_start_time': curr_time(), 'details': []})
-    for h in history:
-        pass
+    print("{} process task start, {}".format(curr_time(), task))
+    global history_calc
+    if task['end_qi_shu'] == -1:
+        history_calc = history
+    else:
+        history_calc = [h for h in history if task['start_qi_shu'] <= h['qi_shu'] <= task['end_qi_shu']]
+    task.update({'client_id': client_id, 'client_start_time': curr_time(), 'details': {}})
+    results = []
+    for x in range(task['task_size']):
+        results.append(do_calc(task, x + task['task_start'] + 1))
+    coolest = {'total_yes': 0, 'total_no': 0,
+               'max_multi_yes': 0, 'max_multi_no': 0,
+               'current_multi_yes': 0, 'current_multi_no': 0}
+    for r in results:
+        if not str(r['current_multi_yes']) in task['details']:
+            task['details'][str(r['current_multi_yes'])] = {'times': r['current_multi_yes'], 'odd': 0, 'even': 0}
+        if r['result'] == 1:
+            task['details'][str(r['current_multi_yes'])]['odd'] += 1
+        else:
+            task['details'][str(r['current_multi_yes'])]['even'] += 1
+        coolest['total_yes'] += r['total_yes']
+        coolest['total_no'] += r['total_no']
+        if coolest['max_multi_yes'] < r['max_multi_yes']:
+            coolest['max_multi_yes'] = r['max_multi_yes']
+        if coolest['max_multi_no'] < r['max_multi_no']:
+            coolest['max_multi_no'] = r['max_multi_no']
+        if coolest['current_multi_yes'] < r['current_multi_yes']:
+            coolest['current_multi_yes'] = r['current_multi_yes']
+        if coolest['current_multi_no'] < r['current_multi_no']:
+            coolest['current_multi_no'] = r['current_multi_no']
+    task['coolest'] = coolest
     task['client_end_time'] = curr_time()
+    print("{} process task end,   {}".format(curr_time(), task))
     return task
 
 
@@ -87,7 +119,41 @@ def submit_task(request):
     raise Exception('提交任务失败')
 
 
-def do_work():
+def do_calc(task, formula_id):
+    formula_content = calc_formula_format.format(str(bin(formula_id))[2:])
+    formula = {'formula_id': formula_id, 'formula_content': formula_content,
+               'start_qi_shu': task['task_start'], 'end_qi_shu': task['end_qi_shu'],
+               'total_yes': 0, 'total_no': 0,
+               'max_multi_yes': 0, 'max_multi_no': 0,
+               'current_multi_yes': 0, 'current_multi_no': 0,
+               'calc_result': 0, 'result': 0}
+    hid = 0
+    for h in history_calc:
+        tmp = 0
+        for flag, key in zip(formula_content, calc_item):
+            if flag == '1':
+                tmp += h[key]
+        r = tmp % 49
+        formula['calc_result'] = r
+        formula['result'] = r % 2
+        if hid + 1 < len(history_calc):
+            if history_calc[hid + 1]['tm|hm'] % 49 % 2 == formula['result']:
+                formula['total_yes'] += 1
+                formula['current_multi_yes'] += 1
+                formula['current_multi_no'] = 0
+                if formula['current_multi_yes'] > formula['max_multi_yes']:
+                    formula['max_multi_yes'] = formula['current_multi_yes']
+            else:
+                formula['total_no'] += 1
+                formula['current_multi_no'] += 1
+                formula['current_multi_yes'] = 0
+                if formula['current_multi_no'] > formula['max_multi_no']:
+                    formula['max_multi_no'] = formula['current_multi_no']
+        hid += 1
+    return formula
+
+
+def start():
     while True:
         task = request_task()
         result = process(task)
@@ -106,6 +172,6 @@ if __name__ == "__main__":
         print("-" * 60)
         _load_config(os.path.join(work_dir, config_file_name))
         init()
-        do_work()
+        start()
     except Exception as e:
         print(e)

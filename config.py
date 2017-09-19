@@ -246,7 +246,7 @@ def _deal_history_calc_item():
         simple_history.append(obj)
         for k in less_keys:
             obj[k] = h[k]
-    simple_history = sorted(simple_history, key=lambda h: h['qi_shu'], reverse=True)
+    simple_history = sorted(simple_history, key=lambda h: h['qi_shu'], reverse=False)
     return
 
 
