@@ -72,6 +72,8 @@ def request_task():
 
 
 def process(task):
+    print()
+    print("-" * 60)
     print("{} process task start, {}".format(curr_time(), task))
     global history_calc
     if task['end_qi_shu'] == -1:
@@ -128,16 +130,17 @@ def do_calc(task, formula_id):
                'current_multi_yes': 0, 'current_multi_no': 0,
                'calc_result': 0, 'result': 0}
     hid = 0
+    flag_key = list(zip(formula_content, calc_item))
     for h in history_calc:
         tmp = 0
-        for flag, key in zip(formula_content, calc_item):
+        for flag, key in flag_key:
             if flag == '1':
                 tmp += h[key]
         r = tmp % 49
         formula['calc_result'] = r
         formula['result'] = r % 2
         if hid + 1 < len(history_calc):
-            if history_calc[hid + 1]['tm|hm'] % 49 % 2 == formula['result']:
+            if history_calc[hid + 1]['tm|hm'] % 2 == formula['result']:
                 formula['total_yes'] += 1
                 formula['current_multi_yes'] += 1
                 formula['current_multi_no'] = 0
