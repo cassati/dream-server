@@ -116,10 +116,22 @@ def do_finished():
     task_end_time = config.curr_time()
     global task_finished
     task_finished = sorted(task_finished, key=lambda task: task['task_id'], reverse=False)
-    # TODO process the tasks result
+    details = {}
+    for t in task_finished:
+        for k in t['details']:
+            if k in details:
+                details[k]['odd'] += t['details'][k]['odd']
+                details[k]['even'] += t['details'][k]['even']
+            else:
+                details[k] = {'times': t['details'][k]['times'],
+                              'odd': t['details'][k]['odd'],
+                              'even': t['details'][k]['even']}
+
     f = open(os.path.join(config.work_dir, str(config.start_qi_shu) + '.txt'), 'w')
     for t in task_finished:
         f.write(str(t) + '\n')
+    f.write(str(details) + '\n')
     f.flush()
     f.close()
+    print(str(details))
     return
