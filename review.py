@@ -15,8 +15,9 @@ def start():
     hid = 0
     for h in [h for h in config.simple_history]:
         print(config.curr_time() + ': ' + str(h['qi_shu']))
-        review = {'qi_shu': h['qi_shu'],
-                  'next': h['next_qi_shu'],
+        review = {'qi_shu': h['qi_shu'], 'next': h['next_qi_shu'],
+                  'max_multi_yes': 0, 'max_multi_no': 0,
+                  'current_multi_yes': 0, 'current_multi_no': 0,
                   'details': {}}
         for f in formulas:
             if hid > 0:
@@ -29,6 +30,14 @@ def start():
                 review['details'][str(f['current_multi_yes'])]['odd'] += 1
             else:
                 review['details'][str(f['current_multi_yes'])]['even'] += 1
+            if review['max_multi_yes'] < f['max_multi_yes']:
+                review['max_multi_yes'] = f['max_multi_yes']
+            if review['max_multi_no'] < f['max_multi_no']:
+                review['max_multi_no'] = f['max_multi_no']
+            if review['current_multi_yes'] < f['current_multi_yes']:
+                review['current_multi_yes'] = f['current_multi_yes']
+            if review['current_multi_no'] < f['current_multi_no']:
+                review['current_multi_no'] = f['current_multi_no']
         reviews.append(review)
         hid += 1
     file = open(os.path.join(config.work_dir,
