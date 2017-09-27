@@ -83,7 +83,7 @@ def process(task):
     task.update({'client_id': client_id, 'client_start_time': curr_time(), 'details': {}})
     results = []
     for x in range(task['task_size']):
-        results.append(do_calc(task, x + task['task_start'] + 1))
+        results.append(do_calc(task, x + task['task_start']))
     coolest = {'total_yes': 0, 'total_no': 0,
                'max_multi_yes': 0, 'max_multi_no': 0,
                'current_multi_yes': 0, 'current_multi_no': 0}

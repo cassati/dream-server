@@ -237,15 +237,15 @@ def _deal_history_calc_item():
             num = h[numkey]
             h[item] = get_num(cnyear, num)[attrkey]
     # simple history
-    less_keys = ["qi_shu", "year", "next_qi_shu"]
-    less_keys[-1:] = calc_item[:]
+    less_keys = ["qi_shu", "year", "next_qi_shu"] + calc_item[:]
     for h in history:
         if h["qi_shu"] < start_qi_shu:
             continue
-        obj = {}
-        simple_history.append(obj)
-        for k in less_keys:
-            obj[k] = h[k]
+        if end_qi_shu == -1 or h["qi_shu"] <= end_qi_shu:
+            obj = {}
+            simple_history.append(obj)
+            for k in less_keys:
+                obj[k] = h[k]
     simple_history = sorted(simple_history, key=lambda h: h['qi_shu'], reverse=False)
     return
 

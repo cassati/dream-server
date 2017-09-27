@@ -127,7 +127,7 @@ def do_finished():
                               'odd': t['details'][k]['odd'],
                               'even': t['details'][k]['even']}
 
-    f = open(os.path.join(config.work_dir, str(config.start_qi_shu) + '.txt'), 'w')
+    f = open(os.path.join(config.work_dir, str(config.start_qi_shu) + '-' + str(config.end_qi_shu) + '.txt'), 'w')
     for t in task_finished:
         f.write(str(t) + '\n')
     f.write(str(details) + '\n')
